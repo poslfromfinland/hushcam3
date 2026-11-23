@@ -1,0 +1,517 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>HushCam – Live Cams</title>
+<style>
+:root{--bg:#f4f2f7;--panel:#fff;--panel2:#ebe8f2;--line:#d9d4e5;--tx:#1d1a2b;--mut:#6c6784;--acc:#e0446f;--acc2:#5b3fd1;--live:#e5303c;color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#14111f;--panel:#1d1930;--panel2:#272240;--line:#352f55;--tx:#efecfa;--mut:#9a94b8;--acc:#ff5c8a;--acc2:#8d77ff;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#14111f;--panel:#1d1930;--panel2:#272240;--line:#352f55;--tx:#efecfa;--mut:#9a94b8;--acc:#ff5c8a;--acc2:#8d77ff;color-scheme:dark}
+*,*::before,*::after{box-sizing:inherit}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;background:var(--bg);color:var(--tx);font:14px/1.45 "Trebuchet MS","Segoe UI",system-ui,sans-serif}
+button{font:inherit;color:inherit;cursor:pointer}
+button:focus-visible,input:focus-visible,a:focus-visible{outline:2px solid var(--acc2);outline-offset:2px}
+.logo{font-weight:800;font-size:22px;letter-spacing:-.5px;color:var(--tx);text-decoration:none;white-space:nowrap}
+.logo b{color:var(--acc)}
+header{position:sticky;top:env(safe-area-inset-top,0px);z-index:20;background:var(--panel);border-bottom:1px solid var(--line);display:flex;align-items:center;gap:16px;padding:10px 16px;flex-wrap:wrap}
+nav{display:flex;gap:4px;flex-wrap:wrap}
+nav button{background:none;border:0;padding:7px 12px;border-radius:6px;color:var(--mut);font-weight:600}
+nav button:hover,nav button.on{background:var(--panel2);color:var(--tx)}
+.search{flex:1;min-width:160px;max-width:360px;margin-left:auto}
+.search input{width:100%;padding:8px 12px;border-radius:20px;border:1px solid var(--line);background:var(--bg);color:var(--tx)}
+.hr{display:flex;gap:8px;align-items:center}
+.btn{border:1px solid var(--line);background:var(--panel2);padding:7px 14px;border-radius:6px;font-weight:700}
+.btn.pri{background:var(--acc);border-color:var(--acc);color:#fff}
+.btn.sec{background:var(--acc2);border-color:var(--acc2);color:#fff}
+.tok{background:var(--panel2);border:1px solid var(--line);padding:6px 12px;border-radius:20px;font-weight:700;white-space:nowrap}
+.me{display:flex;align-items:center;gap:8px;background:none;border:1px solid var(--line);border-radius:22px;padding:3px 12px 3px 3px;font-weight:700}
+.me .av{width:30px;height:30px;font-size:13px}
+#nm,#pr,#wd{position:fixed;inset:0;background:rgba(0,0,0,.55);display:none;place-items:center;z-index:50;padding:16px}
+#nm.open,#pr.open,#wd.open{display:grid}
+.nmb{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:18px;width:340px;max-width:100%}
+.nmb h3{margin:0 0 4px}
+.nmb p{margin:0 0 12px;color:var(--mut);font-size:13px}
+.nmb input{width:100%;padding:9px 12px;border-radius:6px;border:1px solid var(--line);background:var(--bg);color:var(--tx)}
+.nmb .err{color:var(--live);font-size:12px;min-height:18px;margin-top:6px}
+.nmb .row{display:flex;gap:8px;justify-content:flex-end;margin-top:8px}
+#wl{position:fixed;inset:0;background:var(--bg);z-index:46;display:none;flex-direction:column}
+#wl.open{display:flex}
+.wlb{flex:1;overflow:auto;padding:16px;max-width:980px;width:100%;margin:0 auto}
+.wtabs{display:flex;gap:6px;margin-bottom:12px}
+.wtabs button{border:1px solid var(--line);background:var(--panel);border-radius:16px;padding:5px 14px;font-weight:700;color:var(--mut)}
+.wtabs button.on{background:var(--acc);border-color:var(--acc);color:#fff}
+.wlx{overflow-x:auto}
+.tbl{width:100%;border-collapse:collapse;background:var(--panel);border:1px solid var(--line)}
+.tbl th,.tbl td{padding:9px 12px;text-align:left;border-bottom:1px solid var(--line);white-space:nowrap}
+.tbl th{color:var(--mut);font-size:12px;text-transform:uppercase;letter-spacing:.4px}
+.tbl input{padding:5px 8px;border-radius:6px;border:1px solid var(--line);background:var(--bg);color:var(--tx);width:150px}
+.tbl tr.dup{background:rgba(224,68,111,.14)}
+.sn b{color:var(--acc)}
+.flag{background:var(--acc);color:#fff;border-radius:10px;padding:1px 8px;font-size:12px;font-weight:700}
+.wlbox{background:var(--panel2);border:1px solid var(--line);border-left:4px solid var(--acc);border-radius:8px;padding:10px 12px;margin-bottom:12px}
+.pos{color:#1c9d5b}.neg{color:var(--live)}
+.gcam{position:absolute;top:0;right:0;bottom:0;left:50%;background:rgba(12,9,24,.82);border-left:2px solid var(--acc2);color:#e6e1fb;z-index:3;overflow:hidden}
+.gcam .gm{position:absolute;inset:0;pointer-events:none}
+.gcam .grid{background:linear-gradient(rgba(255,255,255,.2),rgba(255,255,255,.2)) 33.33% 0/1px 100% no-repeat,linear-gradient(rgba(255,255,255,.2),rgba(255,255,255,.2)) 66.66% 0/1px 100% no-repeat,linear-gradient(rgba(255,255,255,.2),rgba(255,255,255,.2)) 0 33.33%/100% 1px no-repeat,linear-gradient(rgba(255,255,255,.2),rgba(255,255,255,.2)) 0 66.66%/100% 1px no-repeat}
+.gcam .safe{inset:8%;border:1px dashed rgba(255,255,255,.4)}
+.gcam .tkt{top:0;bottom:auto;height:8px;background:repeating-linear-gradient(90deg,rgba(255,255,255,.55) 0 1px,transparent 1px 18px)}
+.gcam .tkl{right:auto;width:8px;background:repeating-linear-gradient(0deg,rgba(255,255,255,.55) 0 1px,transparent 1px 18px)}
+.gcam .c{position:absolute;width:26px;height:26px;border:0 solid var(--acc)}
+.gcam .tl{top:8px;left:8px;border-top-width:3px;border-left-width:3px}
+.gcam .tr{top:8px;right:8px;border-top-width:3px;border-right-width:3px}
+.gcam .bl{bottom:8px;left:8px;border-bottom-width:3px;border-left-width:3px}
+.gcam .br{bottom:8px;right:8px;border-bottom-width:3px;border-right-width:3px}
+.gcam .gx{position:absolute;left:50%;top:50%;width:34px;height:34px;transform:translate(-50%,-50%);background:linear-gradient(var(--acc),var(--acc)) center/2px 100% no-repeat,linear-gradient(var(--acc),var(--acc)) center/100% 2px no-repeat}
+.gcam .mk{position:absolute;width:24px;height:24px;border-radius:50%;background:var(--acc);color:#fff;font-size:12px;display:grid;place-items:center;transform:translate(-50%,-50%);box-shadow:0 0 0 3px rgba(255,255,255,.25)}
+.gcam .m1{left:8%;top:8%}.gcam .m2{left:92%;top:8%}.gcam .m3{left:8%;top:92%}.gcam .m4{left:92%;top:92%}
+.gcam .gl{position:absolute;left:0;right:0;top:calc(50% + 28px);text-align:center;font-size:13px}
+.gcam small{display:block;opacity:.7;font-size:11px}
+.pvs.split video{width:50%}
+.pvs.split .pvph{right:50%}
+#pvGc.on{background:var(--acc);border-color:var(--acc);color:#fff}
+#pv{position:fixed;inset:0;background:var(--bg);z-index:45;display:none;flex-direction:column}
+#pv.open{display:flex}
+.pvh{display:flex;gap:16px;align-items:center;flex-wrap:wrap;padding:12px 16px;padding-top:calc(12px + env(safe-area-inset-top,0px));background:var(--acc2);color:#fff}
+.pvh .btn{margin-left:auto}
+.pvb{flex:1;display:grid;grid-template-columns:minmax(0,1fr) 360px;gap:12px;padding:12px;min-height:0}
+.pvs{background:#000;border-radius:10px;position:relative;overflow:hidden;min-height:0}
+.pvs video{width:100%;height:100%;object-fit:cover;transform:scaleX(-1);display:none}
+.pvph{position:absolute;inset:0;display:grid;place-items:center;text-align:center;padding:20px;color:#cfc9ea;background:radial-gradient(circle at 50% 40%,#3a2f6b,#120f20 75%)}
+.pvc{background:var(--panel);border:1px solid var(--line);border-radius:10px;display:flex;flex-direction:column;min-height:0}
+.mode{display:flex;gap:6px;align-items:center;padding:10px;border-bottom:1px solid var(--line);flex-wrap:wrap}
+.mode span{color:var(--mut);font-size:12px}
+.mode button{border:1px solid var(--line);background:none;border-radius:16px;padding:4px 12px;font-weight:700;color:var(--mut)}
+.mode button.on{background:var(--acc);border-color:var(--acc);color:#fff}
+.bub small{opacity:.75;font-weight:700}
+@media(max-width:820px){.pvb{grid-template-columns:1fr;grid-template-rows:200px minmax(0,1fr)}}
+.badge{background:var(--acc);color:#fff;border-radius:10px;font-size:11px;padding:1px 6px;margin-left:4px}
+.follow{background:var(--panel);border-bottom:1px solid var(--line);padding:10px 16px;display:flex;gap:14px;align-items:center;overflow-x:auto}
+.follow h3{margin:0;font-size:13px;color:var(--mut);white-space:nowrap}
+.fb{background:none;border:0;display:flex;flex-direction:column;align-items:center;gap:3px;min-width:64px;font-size:12px;color:var(--mut)}
+.fb:hover{color:var(--tx)}
+.av{width:44px;height:44px;border-radius:50%;display:grid;place-items:center;font-weight:800;color:#fff;position:relative;flex:none}
+.fb .av{border:2px solid var(--line)}
+.fb.live .av{border-color:var(--live)}
+.fb.live .av::after{content:"LIVE";position:absolute;bottom:-6px;background:var(--live);font-size:8px;padding:0 4px;border-radius:3px;letter-spacing:.3px}
+main{display:grid;grid-template-columns:minmax(0,1fr) 340px;gap:16px;padding:16px;max-width:1500px;margin:0 auto}
+.stage{background:#000;border-radius:10px;overflow:hidden;position:relative;aspect-ratio:16/9;display:grid;place-items:center}
+.stage video{width:100%;height:100%;object-fit:cover;transform:scaleX(-1);display:none}
+.ph{text-align:center;color:#cfc9ea;padding:20px;background:rgba(12,9,24,.5);position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px}
+.ph .cam{font-size:44px}
+.ph p{margin:0;max-width:360px;font-size:13px}
+.tag{position:absolute;top:10px;left:10px;display:flex;gap:6px;z-index:2}
+.tag span{background:rgba(0,0,0,.6);color:#fff;padding:3px 8px;border-radius:5px;font-size:12px;font-weight:700}
+.tag .l{background:var(--live)}
+.ctrl{position:absolute;bottom:10px;right:10px;display:flex;gap:6px;z-index:2}
+.ctrl button{background:rgba(0,0,0,.6);border:0;color:#fff;padding:6px 10px;border-radius:6px}
+.info{background:var(--panel);border:1px solid var(--line);border-radius:10px;margin-top:12px;padding:14px;display:flex;gap:14px;align-items:center;flex-wrap:wrap}
+.info .t{flex:1;min-width:200px}
+.info h2{margin:0;font-size:18px}
+.info p{margin:2px 0 0;color:var(--mut)}
+.chips{display:flex;gap:6px;margin-top:6px;flex-wrap:wrap}
+.chips span{background:var(--panel2);padding:2px 9px;border-radius:12px;font-size:12px;color:var(--mut)}
+.chat{background:var(--panel);border:1px solid var(--line);border-radius:10px;display:flex;flex-direction:column;height:calc(56.25vw*0 + 560px);min-height:420px}
+.tabs{display:flex;border-bottom:1px solid var(--line)}
+.tabs button{flex:1;background:none;border:0;padding:10px;font-weight:700;color:var(--mut);border-bottom:2px solid transparent}
+.tabs button.on{color:var(--tx);border-color:var(--acc)}
+.msgs{flex:1;overflow-y:auto;padding:10px 12px;display:flex;flex-direction:column;gap:6px}
+.m b{margin-right:6px}
+.m.sys{color:var(--mut);font-style:italic}
+.m.tip{background:var(--panel2);border-left:3px solid var(--acc);padding:4px 8px;border-radius:4px}
+.send{display:flex;gap:6px;padding:10px;border-top:1px solid var(--line)}
+.send input{flex:1;min-width:0;padding:9px 12px;border-radius:6px;border:1px solid var(--line);background:var(--bg);color:var(--tx)}
+.users{padding:10px 12px;overflow-y:auto;flex:1;display:none;flex-direction:column;gap:8px}
+.users div{display:flex;align-items:center;gap:8px}
+.users .av{width:28px;height:28px;font-size:12px}
+.grid-wrap{grid-column:1/-1}
+.grid-wrap h2{font-size:16px;margin:8px 0 10px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:12px}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:8px;overflow:hidden;cursor:pointer;text-align:left;padding:0;display:block;width:100%}
+.card:hover{border-color:var(--acc)}
+.th{aspect-ratio:16/10;display:grid;place-items:center;font-size:34px;font-weight:800;color:rgba(255,255,255,.85);position:relative}
+.th .l{position:absolute;top:6px;left:6px;background:var(--live);color:#fff;font-size:10px;padding:1px 6px;border-radius:4px}
+.th .v{position:absolute;bottom:6px;right:6px;background:rgba(0,0,0,.6);color:#fff;font-size:11px;padding:1px 6px;border-radius:4px}
+.cb{padding:8px 10px}
+.cb b{display:block}
+.cb span{color:var(--mut);font-size:12px}
+.th canvas,.stage canvas{position:absolute;inset:0;width:100%;height:100%;display:block}
+.stage video{position:relative;z-index:1}
+.stage video.rv{position:absolute;inset:0;transform:none;display:none}
+.stage .ph{z-index:2}
+.th video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.follow,.grid-wrap,#nav,.search,#followBtn,#msgBtn{display:none}
+.hr{margin-left:auto}
+body.viewer #startCam,body.viewer #goLive,body.host #pvBtn,body.viewer #phWrap,body.viewer .ctrl,body.viewer .ph,body.host #tipBtn,body.viewer #pvRen{display:none}
+.m.real b{color:var(--acc2)}
+/* messages window */
+#dm{position:fixed;right:16px;bottom:calc(16px + env(safe-area-inset-bottom,0px));width:420px;max-width:calc(100vw - 32px);height:440px;background:var(--panel);border:1px solid var(--line);border-radius:12px;box-shadow:0 10px 40px rgba(0,0,0,.35);display:none;flex-direction:column;z-index:30;overflow:hidden}
+#dm.open{display:flex}
+#dm.min{height:44px}
+#dm.min .dmb{display:none}
+.dmh{display:flex;align-items:center;justify-content:space-between;padding:0 8px 0 14px;height:44px;background:var(--acc2);color:#fff;font-weight:700;flex:none}
+.dmh button{background:none;border:0;color:#fff;font-size:18px;padding:4px 8px}
+.dmb{flex:1;display:grid;grid-template-columns:150px 1fr;min-height:0}
+.cl{border-right:1px solid var(--line);overflow-y:auto}
+.cl button{width:100%;display:flex;gap:8px;align-items:center;background:none;border:0;border-bottom:1px solid var(--line);padding:8px;text-align:left}
+.cl button.on{background:var(--panel2)}
+.cl .av{width:30px;height:30px;font-size:12px}
+.cl small{display:block;color:var(--mut);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:80px}
+.cl .n{min-width:0}
+.th2{display:flex;flex-direction:column;min-height:0}
+.th2 .msgs{flex:1}
+.bub{max-width:85%;padding:6px 10px;border-radius:12px;background:var(--panel2)}
+.bub.me{align-self:flex-end;background:var(--acc2);color:#fff}
+.empty{color:var(--mut);padding:20px;text-align:center}
+.toast{position:fixed;left:50%;bottom:90px;transform:translateX(-50%);background:var(--tx);color:var(--bg);padding:8px 14px;border-radius:8px;z-index:40;display:none}
+@media(max-width:980px){main{grid-template-columns:1fr}.chat{height:420px}}
+@media(max-width:520px){.dmb{grid-template-columns:96px 1fr}.cl small{display:none}}
+@media(prefers-reduced-motion:no-preference){.fb.live .av{animation:pulse 2.4s ease-in-out infinite}@keyframes pulse{50%{box-shadow:0 0 0 4px rgba(229,48,60,.25)}}}
+main{height:calc(100dvh - 60px);min-height:480px;grid-template-rows:minmax(0,1fr)}
+main>div:first-child{display:flex;flex-direction:column;min-height:0}
+.stage{flex:1;min-height:0;aspect-ratio:auto}
+.info{flex:none}
+.chat{height:auto;min-height:0}
+@media(max-width:980px){main{height:auto;min-height:0;grid-template-rows:none}.stage{flex:none;aspect-ratio:16/9}.chat{height:420px}}
+</style>
+</head>
+<body>
+<header>
+  <a class="logo" href="#">Hush<b>Cam</b></a>
+  <nav id="nav"></nav>
+  <div class="search"><input type="search" placeholder="Search rooms, tags, models" aria-label="Search"></div>
+  <div class="hr">
+    <button class="btn" id="dmBtn">Messages<span class="badge" id="dmBadge">3</span></button>
+    <button class="btn sec" id="goLive">Wallet</button>
+    <span class="tok" title="Token balance">🪙 <span id="tok">120</span> tokens</span>
+    <button class="me" id="meBtn" title="Your account"><span class="av" id="meAv" style="background:var(--acc2)">H</span><span id="meName">hush_user</span></button>
+  </div>
+</header>
+
+<section class="follow" aria-label="Followings"><h3>Following</h3><div id="fl" style="display:flex;gap:14px"></div></section>
+
+<main>
+  <div>
+    <div class="stage">
+      <video id="roomVid" class="rv" autoplay muted loop playsinline></video><canvas id="stageCv" width="640" height="360"></canvas><div class="tag"><span class="l">LIVE</span><span id="viewers">0 viewers</span></div>
+      <div class="ph" id="ph">
+        <div class="cam">📷</div>
+        <strong>Your webcam appears here</strong>
+        <p>Allow camera access to preview your stream. Nothing is recorded or uploaded.</p>
+        <button class="btn pri" id="startCam">Start camera</button>
+        <p id="camHint" style="color:#ffb3c4" role="alert"></p>
+      </div>
+      <video id="vid" autoplay muted playsinline></video>
+      <div class="ctrl"><button id="stopCam" title="Stop camera">Stop</button><button id="full" title="Fullscreen">Fullscreen</button></div>
+    </div>
+    <div class="info">
+      <div class="av" id="rAv" style="width:52px;height:52px;font-size:20px"></div>
+      <div class="t"><h2 id="rName"></h2><p id="rTitle"></p><div class="chips" id="rTags"></div></div>
+      <button class="btn" id="followBtn">Follow</button>
+      <button class="btn" id="msgBtn">Message</button>
+      <button class="btn pri" id="tipBtn">Send tip</button>
+      <button class="btn sec" id="pvBtn">Private</button>
+    </div>
+  </div>
+
+  <aside class="chat">
+    <div class="tabs"><button class="on" data-t="chat">Chat</button><button data-t="users">Users (<span id="uc">0</span>)</button></div>
+    <div class="msgs" id="msgs" aria-live="polite"></div>
+    <div class="users" id="users"></div>
+    <form class="send" id="sendF"><input id="msgIn" maxlength="200" placeholder="Send a message" autocomplete="off"><button class="btn pri">Send</button></form>
+  </aside>
+
+  <section class="grid-wrap">
+    <h2 id="gridTitle">Live now</h2>
+    <div class="grid" id="grid"></div>
+  </section>
+</main>
+
+<div id="dm" role="dialog" aria-label="Messages">
+  <div class="dmh"><span>Messages</span><span><button id="dmMin" title="Minimize">–</button><button id="dmClose" title="Close">✕</button></span></div>
+  <div class="dmb">
+    <div class="cl" id="cl"></div>
+    <div class="th2">
+      <div class="msgs" id="dmMsgs"></div>
+      <form class="send" id="dmF"><input id="dmIn" placeholder="Write a message" autocomplete="off"><button class="btn sec">Send</button></form>
+    </div>
+  </div>
+</div>
+<div id="pv" role="dialog" aria-label="Private show">
+  <div class="pvh"><b>🔒 Private show with <span id="pvG"></span></b><span><span id="pvEL">Received</span>: <b id="pvE">0</b> tokens</span><button class="btn" id="pvGc" style="margin-left:0">Guest cam</button><button class="btn" id="pvRen" style="margin-left:0">Rename guest</button><button class="btn pri" id="pvEnd">End private</button></div>
+  <div class="pvb">
+    <div class="pvs"><video id="pvVid" autoplay muted playsinline></video><div class="pvph" id="pvPh">Your camera preview appears here.<br>Start the camera on the main page first.</div><div class="gcam" id="pvGuest" style="display:none"><div class="gm grid"></div><div class="gm safe"></div><div class="gm tkt"></div><div class="gm tkl"></div><i class="c tl"></i><i class="c tr"></i><i class="c bl"></i><i class="c br"></i><span class="gx"></span><b class="mk m1">1</b><b class="mk m2">2</b><b class="mk m3">3</b><b class="mk m4">4</b><div class="gl">Guest camera · <b id="pvGN"></b><small>Marker area for graphics, no video</small></div></div></div>
+    <div class="pvc">
+      <div class="mode"><span>Write as:</span><button type="button" id="asMe" class="on"></button><button type="button" id="asG"></button></div>
+      <div class="msgs" id="pvMsgs" aria-live="polite"></div>
+      <form class="send" id="pvF"><input id="pvIn" maxlength="200" placeholder="Write a private message" autocomplete="off"><button class="btn sec">Send</button></form>
+    </div>
+  </div>
+</div>
+<div id="wl" role="dialog" aria-label="Wallet"><div class="pvh"><b>Wallet</b><span>Balance: <b id="wlBal">0</b> tokens</span><button class="btn" id="wdBtn" style="margin-left:0">Withdraw</button><button class="btn pri" id="wlClose">Close</button></div><div class="wlb"><div class="wtabs"><button class="on" data-w="pay">Payers</button><button data-w="tx">Transactions</button></div><div id="wlPay"></div><div id="wlTx" style="display:none"></div></div></div>
+<div id="wd" role="dialog" aria-label="Withdraw"><form class="nmb" id="wdF"><h3>Withdraw tokens</h3><p>Request a payout of your balance. This is a demo, no real money moves.</p><input id="wdAmt" type="number" min="1" placeholder="Amount in tokens" aria-label="Amount"><div class="err" id="wdErr" role="alert"></div><div class="row"><button type="button" class="btn" id="wdCancel">Cancel</button><button class="btn pri">Request payout</button></div></form></div>
+<div id="pr" role="dialog" aria-label="Private price"><form class="nmb" id="prF"><h3>Request a private show</h3><p>Offer a price in tokens for the private show. The host can accept or ignore it.</p><input id="prIn" type="number" min="1" max="5000" value="500" aria-label="Price in tokens"><div class="err" id="prErr" role="alert"></div><div class="row"><button type="button" class="btn" id="prCancel">Cancel</button><button class="btn pri">Send request</button></div></form></div>
+<div id="nm" role="dialog" aria-label="Change username"><form class="nmb" id="nmF"><h3 id="nmH">Change username</h3><p>This is the name shown in chat.</p><input id="nmIn" maxlength="20" autocomplete="off" aria-label="Username"><div id="phWrap" style="margin-top:8px"><label class="btn" style="display:inline-block">Upload photo<input type="file" id="phIn" accept="image/*" hidden></label><button type="button" class="btn" id="phRm" style="margin-left:6px">Remove photo</button></div><div class="err" id="nmErr" role="alert"></div><div class="row"><button type="button" class="btn" id="nmCancel">Cancel</button><button class="btn pri">Save</button></div></form></div>
+<div class="toast" id="toast"></div>
+
+<script>
+var COLORS=["#d6336c","#7048e8","#1c7ed6","#0ca678","#e8590c","#ae3ec9","#c92a2a","#2b8a3e"];
+var ROOMS=[
+ {id:1,n:"hush_user",t:"Welcome to my room! Say hi in chat",tags:["live","chat","english"],v:37,cat:"Featured",live:1},
+ {id:2,n:"NoraSky",t:"Cozy gaming night – come hang out",tags:["gaming","cozy"],v:964,cat:"Featured",live:1},
+ {id:3,n:"MiloRay",t:"Acoustic guitar and requests",tags:["music","guitar"],v:731,cat:"Music",live:1},
+ {id:4,n:"AriaMoon",t:"Drawing portraits live",tags:["art","creative"],v:512,cat:"Creative",live:1},
+ {id:5,n:"KaiStorm",t:"Q&A and late-night talk",tags:["talk","chat"],v:2210,cat:"Talk",live:1},
+ {id:6,n:"ZoeBloom",t:"Yoga flow, 30 minutes",tags:["fitness","wellness"],v:389,cat:"Fitness",live:1},
+ {id:7,n:"EliNova",t:"Cooking pasta from scratch",tags:["cooking","food"],v:276,cat:"Creative",live:0},
+ {id:8,n:"SamRiver",t:"Retro games marathon",tags:["gaming","retro"],v:640,cat:"Gaming",live:1},
+ {id:9,n:"IvyLane",t:"Piano covers and chat",tags:["music","piano"],v:455,cat:"Music",live:1},
+ {id:10,n:"RexAsh",t:"Beats and live mixing",tags:["music","dj"],v:1180,cat:"Music",live:1},
+ {id:11,n:"JuneFox",t:"Language exchange: Spanish ↔ English",tags:["talk","learning"],v:198,cat:"Talk",live:0},
+ {id:12,n:"OwenDusk",t:"Chess blitz with viewers",tags:["gaming","chess"],v:322,cat:"Gaming",live:1}
+];
+var FOLLOW=[1,2,5,7,9,11,3];
+var NAV=["Featured","Music","Gaming","Talk","Creative","Fitness"];
+var cur=ROOMS[0],followed={1:1,2:1,5:1,7:1,9:1,11:1,3:1},navSel="Featured",stream=null;
+var $=function(i){return document.getElementById(i)};
+function col(id){return COLORS[id%COLORS.length]}
+function ini(n){return n.slice(0,1)}
+function esc(s){return s.replace(/[&<>"]/g,function(c){return{"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]})}
+function fmt(n){return n>=1000?(n/1000).toFixed(1)+"k":n}
+function toast(t){var e=$("toast");e.textContent=t;e.style.display="block";clearTimeout(toast.h);toast.h=setTimeout(function(){e.style.display="none"},2200)}
+
+/* nav */
+function drawNav(){
+ $("nav").innerHTML=NAV.map(function(n){return '<button class="'+(n===navSel?"on":"")+'" data-n="'+n+'">'+n+'</button>'}).join("");
+ $("nav").querySelectorAll("button").forEach(function(b){b.onclick=function(){navSel=b.dataset.n;drawNav();drawGrid()}});
+}
+/* followings */
+function drawFollow(){
+ $("fl").innerHTML=ROOMS.filter(function(r){return followed[r.id]}).map(function(r){
+  return '<button class="fb '+(r.live?"live":"")+'" data-id="'+r.id+'"><div class="av" style="background:'+col(r.id)+'">'+ini(r.n)+'</div>'+r.n+'</button>'}).join("")||'<span style="color:var(--mut)">You are not following anyone yet.</span>';
+ $("fl").querySelectorAll("button").forEach(function(b){b.onclick=function(){openRoom(+b.dataset.id)}});
+}
+/* grid */
+function drawGrid(){
+ var list=ROOMS.filter(function(r){return r.live&&(navSel==="Featured"||r.cat===navSel)});
+ $("gridTitle").textContent=navSel==="Featured"?"Live now":navSel+" rooms live now";
+ $("grid").innerHTML=list.length?list.map(function(r){
+  return '<button class="card" data-id="'+r.id+'"><div class="th" style="background:linear-gradient(135deg,'+col(r.id)+',#1b1630)">'+(MEDIA[r.id]?'<video src="'+MEDIA[r.id]+'" autoplay muted loop playsinline></video>':'<canvas width="192" height="120" data-id="'+r.id+'"></canvas>')+'<span class="l">LIVE</span><span class="v">'+fmt(r.v)+' viewers</span></div><div class="cb"><b>'+r.n+'</b><span>'+esc(r.t)+'</span></div></button>'}).join(""):'<div class="empty">No rooms are live in this category. Try another one.</div>';
+ regCards();$("grid").querySelectorAll(".card").forEach(function(b){b.onclick=function(){openRoom(+b.dataset.id);window.scrollTo({top:0,behavior:"smooth"})}});
+}
+/* room */
+var FAKE=["MoonWalker","pixel_dan","ClaraB","jazzfan88","TomK","night_owl","SunnyD","quietstorm","Bella_7","FoxyJ"];
+var LINES=["Hey everyone!","This is so relaxing","Hello from Canada 👋","Love this setup","Can you play something slow?","Sound is great today","First time here, hi!","Haha good one","Following now ❤","Great stream as always","What's the song called?","brb getting tea"];
+function openRoom(id){
+ cur=ROOMS.filter(function(r){return r.id===id})[0];
+ $("rAv").style.background=col(cur.id);$("rAv").textContent=ini(cur.n);
+ $("rName").textContent=cur.n;$("rTitle").textContent=cur.t;
+ $("rTags").innerHTML=cur.tags.map(function(t){return "<span>#"+t+"</span>"}).join("");
+ $("viewers").textContent=fmt(cur.v)+" viewers";
+ $("uc").textContent=cur.v;
+ $("followBtn").textContent=followed[cur.id]?"Following":"Follow";
+ $("msgs").innerHTML="";sys("You are live. Viewers can chat and tip you here.");
+ for(var i=0;i<4;i++)fake();
+ drawUsers();
+}
+function addMsg(cls,html){var d=document.createElement("div");d.className="m "+cls;d.innerHTML=html;var m=$("msgs");m.appendChild(d);while(m.children.length>120)m.removeChild(m.firstChild);m.scrollTop=m.scrollHeight}
+function sys(t){addMsg("sys",esc(t))}
+function fake(){var i=Math.floor(Math.random()*FAKE.length);addMsg("",'<b style="color:'+col(i+3)+'">'+FAKE[i]+'</b>'+esc(LINES[Math.floor(Math.random()*LINES.length)]))}
+setInterval(function(){if(!document.hidden)fake()},3200);
+$("sendF").onsubmit=function(e){e.preventDefault();var v=$("msgIn").value.trim();if(!v)return;addMsg("",'<b style="color:var(--acc)">'+esc(uname)+'</b>'+esc(v));send({t:"chat",name:uname,text:v});$("msgIn").value=""};
+$("followBtn").onclick=function(){if(followed[cur.id]){delete followed[cur.id]}else{followed[cur.id]=1;toast("Now following "+cur.n)}$("followBtn").textContent=followed[cur.id]?"Following":"Follow";drawFollow()};
+$("tipBtn").onclick=function(){var t=+$("tok").textContent;if(t<25){toast("Not enough tokens");return}$("tok").textContent=t-25;addMsg("tip",'<b style="color:var(--acc)">'+esc(uname)+'</b>sent a tip of 25 tokens 🎁')};
+var HOST=false;document.body.classList.add(HOST?"host":"viewer");var uname=HOST?"hush_user":"viewer"+Math.floor(Math.random()*900+100);
+var firstVisit=true;try{var sv=localStorage.getItem(HOST?"hc_h":"hc_v");if(sv){uname=sv;firstVisit=false}}catch(e){}
+function applyName(){$("meName").textContent=uname;$("meAv").textContent=uname.charAt(0).toUpperCase();if(HOST){ROOMS[0].n=uname;$("rName").textContent=uname;$("rAv").textContent=uname.charAt(0).toUpperCase()}applyHostImg()}
+applyName();
+function closeNm(){$("nm").classList.remove("open");$("pr").classList.remove("open");$("wd").classList.remove("open");$("nmH").textContent="Change username"}
+$("meBtn").onclick=function(){$("nmH").textContent=HOST?"Edit profile":"Change username";$("nmIn").value=uname;$("nmErr").textContent="";$("nm").classList.add("open");$("nmIn").focus();$("nmIn").select()};
+$("nmCancel").onclick=closeNm;
+$("nm").onclick=function(e){if(e.target===$("nm"))closeNm()};
+document.addEventListener("keydown",function(e){if(e.key==="Escape")closeNm()});
+$("nmF").onsubmit=function(e){e.preventDefault();var v=$("nmIn").value.trim();if(!/^[A-Za-z0-9_.-]{3,20}$/.test(v)){$("nmErr").textContent="Use 3-20 letters, numbers, _ . or -";return}uname=v;try{localStorage.setItem(HOST?"hc_h":"hc_v",v)}catch(e2){}applyName();send({t:"name",name:v});closeNm();toast("Username changed to "+v)};
+document.querySelectorAll(".tabs button").forEach(function(b){b.onclick=function(){document.querySelectorAll(".tabs button").forEach(function(x){x.classList.toggle("on",x===b)});var u=b.dataset.t==="users";$("msgs").style.display=u?"none":"flex";$("sendF").style.display=u?"none":"flex";$("users").style.display=u?"flex":"none"}});
+
+/* webcam */
+$("startCam").onclick=async function(){
+ var hint=$("camHint");
+ try{
+  if(!navigator.mediaDevices||!navigator.mediaDevices.getUserMedia)throw {name:"Unsupported"};
+  try{stream=await navigator.mediaDevices.getUserMedia({video:{width:{ideal:1280},height:{ideal:720}},audio:false})}
+  catch(e1){if(e1&&e1.name==="NotAllowedError")throw e1;stream=await navigator.mediaDevices.getUserMedia({video:true,audio:false})}
+  var v=$("vid");v.srcObject=stream;v.style.display="block";$("ph").style.display="none";hint.textContent="";
+  try{await v.play()}catch(e2){}
+ }catch(err){
+  var n=err&&err.name,msg="Could not start the camera.";
+  if(n==="NotAllowedError")msg="Camera access was blocked. Click the camera icon in your browser's address bar, allow access, then try again. If this page is embedded, the host may block the camera: download the file and open it locally.";
+  else if(n==="NotFoundError")msg="No camera found. Connect a webcam and try again.";
+  else if(n==="NotReadableError")msg="Your camera is in use by another app. Close it and try again.";
+  else if(n==="Unsupported")msg="This browser or context does not support camera access. Use HTTPS or a recent browser.";
+  var emb=false;try{emb=window.top!==window}catch(e3){emb=true}
+  hint.textContent=msg+" ["+(n||"error")+" | secure: "+window.isSecureContext+" | embedded: "+emb+" | "+location.protocol+"]";toast("Camera unavailable");
+ }
+};
+function stopCam(){if(stream){stream.getTracks().forEach(function(t){t.stop()});stream=null}$("vid").style.display="none";$("ph").style.display="flex"}
+$("stopCam").onclick=stopCam;
+$("goLive").onclick=function(){drawWallet();$("wl").classList.add("open")};
+$("full").onclick=function(){var s=document.querySelector(".stage");if(s.requestFullscreen)s.requestFullscreen().catch(function(){})};
+
+/* messages window */
+var CONVOS=[
+ {id:1,u:"MoonWalker",m:[["them","Great stream tonight! 💜"],["them","Do you do private shows?"]],unread:2},
+ {id:5,u:"pixel_dan",m:[["them","Hi! Will you stream tomorrow too?"]],unread:1},
+ {id:9,u:"ClaraB",m:[["them","Welcome back! Loved the last show."],["me","Thank you, glad you enjoyed it!"]],unread:0}
+];
+var curC=CONVOS[0];
+function badge(){var n=CONVOS.reduce(function(a,c){return a+c.unread},0);$("dmBadge").textContent=n;$("dmBadge").style.display=n?"inline":"none"}
+function drawCL(){
+ $("cl").innerHTML=CONVOS.map(function(c){var last=c.m[c.m.length-1][1];
+  return '<button class="'+(c===curC?"on":"")+'" data-id="'+c.id+'"><div class="av" style="background:'+col(c.id)+'">'+ini(c.u)+'</div><div class="n"><b>'+c.u+(c.unread?'<span class="badge">'+c.unread+'</span>':"")+'</b><small>'+esc(last)+'</small></div></button>'}).join("");
+ $("cl").querySelectorAll("button").forEach(function(b){b.onclick=function(){curC=CONVOS.filter(function(c){return c.id===+b.dataset.id})[0];curC.unread=0;drawCL();drawThread();badge()}});
+}
+function drawThread(){
+ $("dmMsgs").innerHTML=curC.m.map(function(x){return '<div class="bub '+(x[0]==="me"?"me":"")+'">'+esc(x[1])+'</div>'}).join("");
+ $("dmMsgs").scrollTop=1e6;
+}
+function openDM(id){
+ var r=ROOMS.filter(function(x){return x.id===id})[0];
+ if(r){var c=CONVOS.filter(function(x){return x.id===id})[0];if(!c){c={id:id,u:r.n,m:[["them","Hi! Thanks for stopping by."]],unread:0};CONVOS.unshift(c)}curC=c;c.unread=0}
+ $("dm").classList.add("open");$("dm").classList.remove("min");drawCL();drawThread();badge();
+}
+$("dmBtn").onclick=function(){if($("dm").classList.contains("open"))$("dm").classList.remove("open");else openDM()};
+$("msgBtn").onclick=function(){openDM(cur.id)};
+$("dmClose").onclick=function(){$("dm").classList.remove("open")};
+$("dmMin").onclick=function(){$("dm").classList.toggle("min")};
+$("dmF").onsubmit=function(e){e.preventDefault();var v=$("dmIn").value.trim();if(!v)return;curC.m.push(["me",v]);$("dmIn").value="";drawThread();drawCL();
+ setTimeout(function(){curC.m.push(["them","Got it, thanks for the message!"]);if(!$("dm").classList.contains("open")||$("dm").classList.contains("min"))curC.unread++;drawThread();drawCL();badge()},1400)};
+
+/* incoming tips */
+var lastTipper="";
+function incTip(){if(document.hidden||!HOST)return;var i=Math.floor(Math.random()*FAKE.length),a=[5,10,20,50,100][Math.floor(Math.random()*5)];lastTipper=FAKE[i];addTx({nick:FAKE[i],sn:snFor(FAKE[i]),type:"tip",amt:a});$("tok").textContent=+$("tok").textContent+a;addMsg("tip",'<b style="color:'+col(i+3)+'">'+FAKE[i]+'</b>tipped you '+a+' tokens 🎉')}
+setTimeout(incTip,8000);setInterval(incTip,18000);
+/* private show */
+var pv={on:0,guest:"",as:"me",sec:0,earned:0,timer:null};
+function pvAdd(who,txt){var d=document.createElement("div");d.className="bub"+(who==="me"?" me":"");d.innerHTML="<small>"+esc(who==="me"?uname:pv.guest)+"</small><br>"+esc(txt);var m=$("pvMsgs");m.appendChild(d);m.scrollTop=m.scrollHeight}
+function pvMode(m){pv.as=m;$("asMe").classList.toggle("on",m==="me");$("asG").classList.toggle("on",m==="guest")}
+function openPv(g,real,price,sn,orig){
+ pv.price=price||500;pv.real=!!real;pv.sn=sn||"";pv.guest=g||lastTipper||FAKE[0];pv.orig=orig||pv.guest;
+ var bal=+$("tok").textContent,earns=(HOST||!pv.real);
+ if(!earns&&bal<pv.price){send({t:"pvend"});toast("Not enough tokens for this private show");return}
+ document.querySelector(".mode").style.display=real?"none":"flex";pv.earned=pv.price;pv.on=1;
+ if(earns){$("tok").textContent=bal+pv.price;addTx({nick:pv.orig,sn:pv.sn||snFor(pv.guest),type:"private",amt:pv.price})}else{$("tok").textContent=bal-pv.price}
+ $("pvG").textContent=pv.guest;$("pvE").textContent=pv.price;$("pvEL").textContent=earns?"Received":"Paid";
+ $("asMe").textContent=uname;$("asG").textContent=pv.guest;pvMode("me");
+ $("pvMsgs").innerHTML="";if(!pv.real)pvAdd("guest","Hi! Thanks for accepting the private show 💜");
+ if(stream){$("pvVid").srcObject=stream;$("pvVid").style.display="block";$("pvPh").style.display="none"}else{$("pvVid").style.display="none";$("pvPh").style.display="grid"}
+ $("pv").classList.add("open");$("pvIn").focus();$("pvGuest").style.display="none";$("pvGc").classList.remove("on");document.querySelector(".pvs").classList.remove("split");$("pvGN").textContent=pv.guest;
+}
+function endPv(r){if(!pv.on)return;if(pv.real&&r!==1)send({t:"pvend"});pv.on=0;$("pv").classList.remove("open");$("pvVid").srcObject=null;toast("Private ended")}
+$("pvBtn").onclick=function(){if(HOST||!wsOk){openPv()}else{$("prErr").textContent="";$("pr").classList.add("open");$("prIn").focus()}};$("pvEnd").onclick=endPv;
+$("asMe").onclick=function(){pvMode("me")};$("asG").onclick=function(){pvMode("guest")};
+$("pvF").onsubmit=function(e){e.preventDefault();var v=$("pvIn").value.trim();if(!v)return;$("pvIn").value="";pvAdd(pv.as,v);if(pv.real){send({t:"pm",text:v});return}
+ if(pv.as==="me")setTimeout(function(){if(pv.on)pvAdd("guest",["Sounds great!","Haha, love it","Thanks, that made my day","Tell me more"][Math.floor(Math.random()*4)])},1500)};
+/* animated stream scenes */
+var cards=[],last=0,still=false;
+try{still=matchMedia("(prefers-reduced-motion: reduce)").matches}catch(e){}
+function regCards(){cards=[].slice.call(document.querySelectorAll("#grid canvas"))}
+function roomById(id){return ROOMS.filter(function(r){return r.id===id})[0]}
+function scene(c,r,t){
+ var x=c.getContext("2d"),w=c.width,h=c.height,k=col(r.id),s=r.id*1.7,i,j,g;
+ g=x.createLinearGradient(0,0,w,h);g.addColorStop(0,k);g.addColorStop(1,"#120f20");x.fillStyle=g;x.fillRect(0,0,w,h);
+ for(i=0;i<4;i++){var bx=w*(.5+.4*Math.sin(t*.4+s+i*1.9)),by=h*(.5+.35*Math.cos(t*.33+s*1.3+i*2.3)),br=h*(.5+.15*Math.sin(t*.7+i));g=x.createRadialGradient(bx,by,0,bx,by,br);g.addColorStop(0,"rgba(255,255,255,.26)");g.addColorStop(1,"rgba(255,255,255,0)");x.fillStyle=g;x.fillRect(0,0,w,h)}
+ var kind=r.tags[0];
+ x.fillStyle="rgba(255,255,255,.5)";x.strokeStyle="rgba(255,255,255,.55)";x.lineWidth=Math.max(1.5,h/90);
+ if(kind==="music"){var n=24,bw=w/n;for(i=0;i<n;i++){var bh=h*(.06+.3*Math.abs(Math.sin(t*3+i*.7+s)*Math.cos(t*1.3+i*.4)));x.fillRect(i*bw+bw*.15,h-bh,bw*.7,bh)}}
+ else if(kind==="gaming"){var cw=w/16,ch=h/10,st=Math.floor(t*3);for(i=0;i<16;i++)for(j=0;j<10;j++){if(Math.sin(i*12.9+j*7.3+st*3.1+s)>.55)x.fillRect(i*cw+1,j*ch+1,cw-2,ch-2)}}
+ else if(kind==="art"){for(j=0;j<5;j++){x.beginPath();for(i=0;i<=w;i+=6){var yy=h*(.2+.15*j)+Math.sin(i/w*6+t*(.8+j*.2)+s)*h*.08;if(i)x.lineTo(i,yy);else x.moveTo(i,yy)}x.stroke()}}
+ else if(kind==="fitness"){x.beginPath();x.arc(w/2,h/2,h*(.18+.09*Math.sin(t*1.2)),0,6.283);x.stroke();x.beginPath();x.arc(w/2,h/2,h*(.3+.12*Math.sin(t*1.2-.5)),0,6.283);x.stroke()}
+ else{for(i=0;i<4;i++){var p=(t*.18+i*.27+s)%1;x.globalAlpha=Math.sin(p*3.14);x.fillRect(i%2?w*.58:w*.1,h*(1.05-p*1.2),w*(.3+.1*(i%2)),h*.1);x.globalAlpha=1}}
+}
+function loop(ts){
+ requestAnimationFrame(loop);
+ if(document.hidden||ts-last<(still?1000:50))return;last=ts;var t=ts/1000;
+ scene($("stageCv"),cur,t);
+ cards.forEach(function(c){var r=roomById(+c.dataset.id);if(r)scene(c,r,t+r.id)});
+}
+requestAnimationFrame(loop);
+/* real room videos: put your own files here, e.g. MEDIA[1]="videos/room1.mp4" */
+var MEDIA={};
+function applyRoomMedia(){var v=$("roomVid"),u=MEDIA[cur.id];if(u){if(v.getAttribute("src")!==u)v.src=u;v.style.display="block";$("stageCv").style.display="none"}else{v.removeAttribute("src");v.style.display="none";$("stageCv").style.display="block"}}
+var _open=openRoom;openRoom=function(id){_open(id);applyRoomMedia();applyHostImg()};
+/* live network layer: active only when hosted with server.js */
+var WS_URL=""; /* when the page is on Vercel, put the server address here, e.g. "wss://hushcam.onrender.com/ws" */
+var ws=null,wsOk=false;
+function send(o){if(wsOk){try{ws.send(JSON.stringify(o))}catch(e){}}}
+function connect(){
+ if(!/^https?:$/.test(location.protocol)||/claude\.ai|claudeusercontent/.test(location.host))return;
+ try{ws=new WebSocket(WS_URL||((location.protocol==="https:"?"wss://":"ws://")+location.host+"/ws"))}catch(e){return}
+ ws.onopen=function(){wsOk=true;send({t:"hello",role:HOST?"host":"viewer",name:uname,sn:SN,key:(location.search.match(/(?:key|host)=([^&]*)/)||[])[1]||""});sys(HOST?"Live server connected. Real viewers can now join.":"Connected to the live room.");if(HOST&&HOSTIMG)send({t:"avatar",img:HOSTIMG})};
+ ws.onclose=function(){wsOk=false;setTimeout(connect,3000)};
+ ws.onmessage=function(e){var m;try{m=JSON.parse(e.data)}catch(x){return}
+  if(m.t==="chat")addMsg("real","<b>"+esc(m.name)+"</b>"+esc(m.text));
+  else if(m.t==="tip"){if(HOST){$("tok").textContent=+$("tok").textContent+m.amt;addTx({nick:m.name,sn:m.sn||"",type:"tip",amt:m.amt})}addMsg("tip real","<b>"+esc(m.name)+"</b>"+(HOST?"tipped you ":"sent a tip of ")+m.amt+" tokens")}
+  else if(m.t==="host"&&!HOST){ROOMS[0].n=m.name;$("rName").textContent=m.name;$("rAv").textContent=m.name.charAt(0).toUpperCase();applyHostImg()}
+  else if(m.t==="pvreq"&&HOST)addMsg("tip real",reqHtml(m.name,m.price,m.id,m.sn));
+  else if(m.t==="pvacc"&&!HOST&&!pv.on)openPv(m.name,true,m.price);
+  else if(m.t==="pm"&&pv.on)pvAdd("guest",m.text);
+  else if(m.t==="avatar"&&!HOST&&(m.img===""||/^data:image\/jpeg;base64,[A-Za-z0-9+\/=]+$/.test(m.img||""))){HOSTIMG=m.img;applyHostImg()}
+  else if(m.t==="users"){var prev=REAL;REAL=m.list||[];if(HOST)REAL.forEach(function(n){if(prev.indexOf(n)<0)sys(n+" joined the room")});drawUsers()}
+  else if(m.t==="denied")sys("Wrong or missing host key. Open this page as /host?key=YOUR_KEY")
+  else if(m.t==="pvend")endPv(1)};
+}
+$("msgs").onclick=function(e){var b=e.target.closest("button[data-id]");if(!b||!HOST)return;var ni=b.parentNode.querySelector(".nick"),real=b.dataset.id!=="bot",nick=(ni&&ni.value.trim()||b.dataset.n).slice(0,20);if(real)send({t:"pvacc",to:b.dataset.id});if(nick!==b.dataset.n){ALIAS[b.dataset.n+"|"+b.dataset.sn]=nick;saveAlias()}openPv(nick,real,+b.dataset.p,b.dataset.sn,b.dataset.n);b.disabled=true;if(ni)ni.disabled=true};
+$("prF").onsubmit=function(e){e.preventDefault();var p=Math.floor(+$("prIn").value);if(!(p>=1&&p<=5000)){$("prErr").textContent="Enter a price from 1 to 5000 tokens";return}if(p>+$("tok").textContent){$("prErr").textContent="You only have "+$("tok").textContent+" tokens";return}send({t:"pvreq",price:p});$("pr").classList.remove("open");toast("Private requested for "+p+" tokens")};
+$("prCancel").onclick=function(){$("pr").classList.remove("open")};
+$("pr").onclick=function(e){if(e.target===$("pr"))$("pr").classList.remove("open")};
+$("pvRen").onclick=function(){var n=prompt("New nickname for this guest",pv.guest);if(n&&n.trim()){pv.guest=n.trim().slice(0,20);if(pv.sn){ALIAS[pv.orig+"|"+pv.sn]=pv.guest;saveAlias()}$("pvG").textContent=pv.guest;$("asG").textContent=pv.guest;$("pvGN").textContent=pv.guest}};
+var _tip=$("tipBtn").onclick;$("tipBtn").onclick=function(){var t=+$("tok").textContent;_tip();if(t>=25)send({t:"tip",amt:25})};
+/* wallet, payer IDs, avatar, bots */
+var REAL=[],TX=[],ALIAS={},SN="",HOSTIMG="",SCN="HC-48291-73055-20481";
+try{ALIAS=JSON.parse(localStorage.getItem("hc_alias")||"{}")}catch(e){}
+try{SN=localStorage.getItem("hc_sn")||"";HOSTIMG=HOST?(localStorage.getItem("hc_img")||""):""}catch(e){}
+if(!SN){var r5=function(){return String(Math.floor(Math.random()*100000)).padStart(5,"0")};SN="HC-"+r5()+"-"+r5()+"-"+r5();try{localStorage.setItem("hc_sn",SN)}catch(e){}}
+function saveAlias(){try{localStorage.setItem("hc_alias",JSON.stringify(ALIAS))}catch(e){}}
+function l5(x){return String(x||"").slice(-5)}
+function maskH(x){return x?"HC-\u2022\u2022\u2022\u2022\u2022-\u2022\u2022\u2022\u2022\u2022-<b>"+l5(x)+"</b>":"\u2014"}
+function hash(x){var h=7;for(var i=0;i<x.length;i++)h=(h*31+x.charCodeAt(i))>>>0;return h}
+function snFor(n){var h=hash(n),p=function(k){return String((h*(k+3)+k*7919)%100000).padStart(5,"0")};return "HC-"+p(1)+"-"+p(2)+"-"+p(3)}
+function addTx(o){o.t=o.t||Date.now();TX.unshift(o);if(TX.length>300)TX.pop();if($("wl").classList.contains("open"))drawWallet()}
+if(HOST){[[95,"Mike_88",SCN,"private",300],[93,"Mike.8",SCN,"private",300],[91,"m1ke_",SCN,"private",300],[60,"MoonWalker",0,"tip",50],[44,"ClaraB",0,"tip",20],[30,"pixel_dan",0,"tip",100],[12,"jazzfan88",0,"tip",10]].forEach(function(a){addTx({t:Date.now()-a[0]*60000,nick:a[1],sn:a[2]||snFor(a[1]),type:a[3],amt:a[4]})});$("tok").textContent=TX.reduce(function(t,x){return t+x.amt},0)}else $("tok").textContent=5000;
+function drawWallet(){
+ var rows={},by={},dup={};
+ TX.forEach(function(x){if(x.type==="payout")return;var k=x.nick+"|"+x.sn,r=rows[k]||(rows[k]={nick:x.nick,sn:x.sn,n:0,tot:0});r.n++;r.tot+=x.amt;(by[l5(x.sn)]=by[l5(x.sn)]||{})[k]=1});
+ Object.keys(by).forEach(function(s5){var c=Object.keys(by[s5]).length;if(c>1)dup[s5]=c});
+ var keys=Object.keys(rows).sort(function(a,b){return rows[b].tot-rows[a].tot}),h="";
+ Object.keys(dup).forEach(function(s5){h+='<div class="wlbox">Payer ID ending <b>'+s5+'</b> is used by <b>'+dup[s5]+'</b> different nicknames. This is most likely the same person.</div>'});
+ h+='<div class="wlx"><table class="tbl"><thead><tr><th>Nickname</th><th>Payer ID</th><th>Payments</th><th>Total</th><th></th></tr></thead><tbody>'+keys.map(function(k){var r=rows[k],d=dup[l5(r.sn)];return '<tr class="'+(d?"dup":"")+'"><td><input data-k="'+esc(k)+'" value="'+esc(ALIAS[k]||r.nick)+'" maxlength="20" aria-label="Nickname"></td><td class="sn">'+maskH(r.sn)+'</td><td>'+r.n+'</td><td>'+r.tot+'</td><td>'+(d?'<span class="flag">Same payer x'+d+'</span>':"")+'</td></tr>'}).join("")+'</tbody></table></div>';
+ $("wlPay").innerHTML=h;
+ $("wlTx").innerHTML='<div class="wlx"><table class="tbl"><thead><tr><th>Time</th><th>Nickname</th><th>Payer ID</th><th>Type</th><th>Amount</th></tr></thead><tbody>'+TX.map(function(x){var d=new Date(x.t),k=x.nick+"|"+x.sn,po=x.type==="payout";return '<tr><td>'+("0"+d.getHours()).slice(-2)+":"+("0"+d.getMinutes()).slice(-2)+'</td><td>'+esc(po?"Withdrawal":(ALIAS[k]||x.nick))+'</td><td class="sn">'+(po?"\u2014":maskH(x.sn))+'</td><td>'+(po?"Payout (pending)":x.type==="private"?"Private show":"Tip")+'</td><td class="'+(x.amt<0?"neg":"pos")+'">'+(x.amt>0?"+":"")+x.amt+'</td></tr>'}).join("")+'</tbody></table></div>';
+ $("wlBal").textContent=$("tok").textContent;
+}
+$("wlPay").onchange=function(e){var k=e.target.getAttribute("data-k");if(!k)return;var v=e.target.value.trim().slice(0,20);if(v)ALIAS[k]=v;else delete ALIAS[k];saveAlias();drawWallet()};
+document.querySelectorAll(".wtabs button").forEach(function(b){b.onclick=function(){document.querySelectorAll(".wtabs button").forEach(function(x){x.classList.toggle("on",x===b)});var pay=b.dataset.w==="pay";$("wlPay").style.display=pay?"block":"none";$("wlTx").style.display=pay?"none":"block"}});
+$("wlClose").onclick=function(){$("wl").classList.remove("open")};
+$("wdBtn").onclick=function(){$("wdErr").textContent="";$("wdAmt").value="";$("wd").classList.add("open");$("wdAmt").focus()};
+$("wdCancel").onclick=function(){$("wd").classList.remove("open")};
+$("wd").onclick=function(e){if(e.target===$("wd"))$("wd").classList.remove("open")};
+$("wdF").onsubmit=function(e){e.preventDefault();var a=Math.floor(+$("wdAmt").value),b=+$("tok").textContent;if(!(a>=1)){$("wdErr").textContent="Enter an amount";return}if(a>b){$("wdErr").textContent="Not enough tokens. Balance: "+b;return}$("tok").textContent=b-a;addTx({nick:"Withdrawal",sn:"",type:"payout",amt:-a});$("wd").classList.remove("open");drawWallet();toast("Withdrawal of "+a+" tokens requested")};
+/* private requests */
+function reqHtml(n,p,id,sn){return "<b>"+esc(n)+"</b>requests a private show for <b>"+p+" tokens</b> \u00b7 ID \u2026"+l5(sn)+"<div style='display:flex;gap:6px;margin-top:6px'><input class='nick' value='"+esc(n)+"' maxlength='20' aria-label='Nickname' style='flex:1;min-width:0;padding:4px 8px;border-radius:6px;border:1px solid var(--line);background:var(--bg);color:var(--tx)'><button class='btn sec' data-id='"+esc(""+id)+"' data-p='"+p+"' data-n='"+esc(n)+"' data-sn='"+esc(sn||"")+"'>Accept</button></div>"}
+function botReq(n,p,sn){addMsg("tip real",reqHtml(n,p,"bot",sn))}
+/* host photo */
+function applyHostImg(){[$("rAv")].concat(HOST?[$("meAv")]:[]).forEach(function(el){if(HOSTIMG){el.style.backgroundImage="url("+HOSTIMG+")";el.style.backgroundSize="cover";el.style.backgroundPosition="center";el.textContent=""}else{el.style.backgroundImage="none";el.textContent=(el===$("meAv")?uname:ROOMS[0].n).charAt(0).toUpperCase()}})}
+$("phIn").onchange=function(){var f=this.files[0];if(!f)return;var fr=new FileReader();fr.onload=function(){var im=new Image();im.onload=function(){var c=document.createElement("canvas");c.width=c.height=160;var x=c.getContext("2d"),m=Math.min(im.width,im.height);x.drawImage(im,(im.width-m)/2,(im.height-m)/2,m,m,0,0,160,160);HOSTIMG=c.toDataURL("image/jpeg",.85);try{localStorage.setItem("hc_img",HOSTIMG)}catch(e){}applyHostImg();send({t:"avatar",img:HOSTIMG});toast("Photo updated")};im.onerror=function(){toast("Could not read this image")};im.src=fr.result};fr.readAsDataURL(f)};
+applyHostImg();
+if(!HOST&&firstVisit){$("nmH").textContent="Welcome! Choose your nickname";$("nmIn").value=uname;$("nmErr").textContent="";$("nm").classList.add("open")}
+$("phRm").onclick=function(){HOSTIMG="";try{localStorage.removeItem("hc_img")}catch(e){}applyHostImg();send({t:"avatar",img:""});toast("Photo removed")};
+function drawUsers(){var row=function(n,c,live){return '<div><div class="av" style="background:'+c+'">'+esc(n.charAt(0).toUpperCase())+'</div><b>'+esc(n)+'</b>'+(live?'<span class="flag" style="margin-left:auto">live</span>':"")+'</div>'};var h=REAL.map(function(n){return row(n,col(hash(n)%8),1)}).join("");if(REAL.length)h+='<div style="color:var(--mut);font-size:12px;margin-top:4px">Demo viewers</div>';h+=FAKE.map(function(n,i){return row(n,col(i+3),0)}).join("");$("users").innerHTML=h}
+$("pvGc").onclick=function(){var g=$("pvGuest"),on=g.style.display==="none";g.style.display=on?"block":"none";document.querySelector(".pvs").classList.toggle("split",on);this.classList.toggle("on",on)};
+connect();
+regCards=function(){cards=[]};
+setInterval(function(){if(document.hidden)return;var r=ROOMS[0];r.v=Math.max(1,r.v+Math.floor(Math.random()*7)-2);var tot=r.v+REAL.length;$("viewers").textContent=fmt(tot)+" viewers";$("uc").textContent=tot},4000);
+drawNav();drawFollow();drawGrid();openRoom(1);badge();
+</script>
+</body>
+</html>
